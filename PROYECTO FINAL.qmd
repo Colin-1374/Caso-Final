@@ -1,0 +1,128 @@
+---
+title: "PROYECTO FIANL"
+author: "José Luis Colin Ramirez, Johan Alexander Gomez Almanza, Israel Eslí Lozano Pérez "
+format: html
+editor: visual
+---
+
+Introducción.
+
+El clima es un conjunto de condiciones atmosféricas (lluvia, humedad, temperaturas, vientos,etc.) que se promedian en un un espacio geográfico en un periodo de 30 años, este se ha visto afectado por las actividades humanas como lo son la deforestación e industrialización. “Los procesos industriales se realizan básicamente quemando combustibles fósiles (petróleo, gas y sus derivados, como la gasolina). Los gases producidos por estas actividades se liberan a la atmósfera y cambian su composición”(Conde, 2007).\
+“También desde hace más de 100 años se ha dado un proceso acelerado de pérdida de bosques y vegetación en regiones muy amplias. Por ejemplo, se calcula que México ha perdido por lo menos la mitad de sus bosques desde la Colonia hasta la actualidad. Según el Programa de Naciones Unidas para el Medio Ambiente (PNUMA), México ha talado 6.3 millones de hectáreas de sus bosques, ocupando el segundo lugar en América Latina en destrucción forestal” (Conde, 2007,p.21).
+
+Planteamiento del problema.
+
+El aumento de la temperatura global causada por los gases de efecto invernadero desencadena problemas tales como el incremento del nivel del mar, disminución de capas de nieve, cambio en las tendencias de precipitaciones, etc(Useros,2012). El cambio climático es un fenómeno global de creciente interés científico, político, social y mediático, porque sus repercusiones afectan y alteran prácticamente la totalidad de las actividades humanas ( IPCC, 2014 ; Schewe et al., 2019 ).También se encarga de perturbar el funcionamiento de la biosfera y alterar la integridad de los ecosistemas. La concientización que se a tenido sobre los efectos que tiene el cambio climático en la biosfera nos llevará a una revolución cultural de consecuencias que se pueden empezar a apreciar en el cambio de los hábitos de consumo y las grandes inversiones en fuentes de energías limpias del estigma de los gases de efecto invernadero(Useros, 2012).
+
+Justificación del problema.
+
+“Ha sido el agravamiento del cambio climático, evidenciado por la ciencia como uno de los grandes retos del siglo XXI, si no el más grande, lo que ha venido a alterar el itinerario trazado de una muerte anunciada por abandono institucional y desaparición forzada”(Gaudiano & Cartea, 2020). Según datos de investigadores de la Universidad Nacional Autónoma de México, la tasa de calentamiento en la república mexicana es mayor a la global, siendo la mexicana de 3.2 grados por siglo mientras que la del planeta es de aproximadamente 2 grados por siglo, este cambio de temperatura a afectado a México teniendo una falta de lluvias (Rodriguez,2025). “El año 2024 fue el año más cálido registrado en el planeta y el primero en el que se superó en conjunto un aumento de 1,5 grados respecto a los niveles preindustriales. De acuerdo con el economista, en México llevamos año y medio por encima de dicha cifra. De acuerdo con los Acuerdos Climáticos de París, no se debe rebasar esa temperatura global. Sin embargo, los años 2016, 2017, 2020, 2023 y 2024 en México han estado por encima de los 1,5 °C”(Rodriguez,2025). Es por eso que con este modelo lineal múltiple queremos observar qué tan relacionadas están las temperaturas(variable dependiente), con la deforestación y las cantidades de Dióxido de carbono presentes en México (variables independientes)
+
+```{r}
+install.packages("tidyverse")
+library(tidyverse)
+install.packages("ggplot2")
+library(ggplot2)
+```
+
+```{r}
+temperatura<- read_csv("TempMexico.csv") #se cargan los datos de temperatura
+temperatura<- data.frame(temperatura$Estado, temperatura$Anual)
+```
+
+```{r}
+arboles<- read_csv("Deforestacion.csv") #se cargan los datos de deforestación
+```
+
+```{r}
+co2<- read_csv("co2.csv") #se cargan los datos de co2
+```
+
+```{r}
+base<- data.frame(co2$Año, co2$CO2, temperatura$temperatura.Anual, arboles$Deforestación) # juntamos las bases de datos para tenerlo en una sola base de datos
+datos <- base %>% rename(año = co2.Año, co2 = co2.CO2 , temperatura = temperatura.temperatura.Anual, deforestación = arboles.Deforestación) #acomodamos los nombres 
+
+head(datos) #Mostramos la base de datos para comprovar que quedo bien 
+```
+
+```{r}
+modelo<- lm(temperatura ~ co2 + deforestación, data = datos) #ejecutamos el modelo 
+```
+
+```{r}
+summary(modelo) #mostramos el resultado del modelo
+```
+
+R² que es igual a 0.5684 nos indica que el modelo explica aproximadamente el 57% de la variabilidad en la temperatura.
+
+R² ajustado da 0.2807 nos muestra que el modelo pierde capacidad explicativa si consideramos el tamaño de la muestra ya que esta es muy pequeña.
+
+```{r}
+install.packages("ggpubr")
+library(ggpubr)
+
+# Q-Q plot para temperatura
+ggqqplot(datos, x = "temperatura", color = "#4e79a7") +
+  labs(title = "Q-Q Plot de Temperatura") +
+  theme_minimal()
+```
+
+```{r}
+library(ggplot2)
+library(gridExtra)
+
+# Creamos graficas con las variables temperatura, co2 y deforestación
+
+# Gráfico 1: Temperatura vs CO2
+g1 <- ggplot(datos, aes(x = co2, y = temperatura)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Relación entre Temperatura y CO2",
+       x = "Niveles de CO2",
+       y = "Temperatura") +
+  theme_minimal()
+
+# Gráfico 2: Temperatura vs Deforestación
+g2 <- ggplot(datos, aes(x = deforestación, y = temperatura)) +
+  geom_point(color = "green") +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  labs(title = "Relación entre Temperatura y Deforestación",
+       x = "Tasa de Deforestación",
+       y = "Temperatura") +
+  theme_minimal()
+
+# Mostrar los tres gráficos juntos
+grid.arrange(g1, g2, ncol = 2)
+```
+
+```{r}
+ggplot(datos, aes(x = año, y = temperatura)) +
+  geom_line(color = "red", linewidth = 1) +          # Línea roja
+  geom_point(color = "blue", size = 3) +             # Puntos azules
+  scale_x_continuous(breaks = 2015:2020) +           # Mostrar todos los años
+  labs(title = "Variación de Temperatura (2015-2020)",
+       x = "Año",
+       y = "Temperatura (°C)") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold")) # Título centrado y en negrita
+```
+
+CONCLUSIÓN
+
+Aunque el modelo muestra cierta relación entre las variables y la temperatura R², ninguna de las variables independientes es estadísticamente significativa. Sin embargo, podemos notar que el CO₂ no es el único gas de efecto invernadero que puede afectar a la atmósfera. También es necesario monitorear los demás GEI (gases de efecto invernadero) para comprender todos los factores que están contribuyendo al cambio climático y así poder actuar de manera eficaz para detener sus efectos.
+
+**Referencias.**
+
+Schewe, Jacob, Simon Gosling, Christopher Reyer, Fang Zhao, Philippe Ciais y Josua Elliott (2019), “Modelos globales de vanguardia subestiman los impactos de los extremos climáticos”, Nature Communications , vol. 10, núm. 1005. DOI: https://doi.org/10.1038/s41467-019-08745-6 \[
+
+ Rodríguez, A. (2025, 13 mayo). El cambio climático no da tregua: México se calienta más que el promedio del planeta. El País México. https://elpais.com/mexico/2025-05-13/el-cambio-climatico-no-da-tregua-mexico-se-calienta-mas-que-el-promedio-del-planeta.html
+
+Gaudiano, E. J. G., & Cartea, P. Á. M. (2020). Educación para el cambio climático: ¿educar sobre el clima o para el cambio? Perfiles Educativos, 42(168), 157-174. https://doi.org/10.22201/iisue.24486167e.2020.168.59464
+
+Useros, J. (2012). EL CAMBIO CLIMÁTICO:  SUS CAUSAS Y EFECTOS MEDIOAMBIENTALES. <https://uvadoc.uva.es/bitstream/handle/10324/23839/ARAMCV-2013-50-cambio-climatico.pdf?sequence=1&isAllowed=y>
+
+Conde, C. (2007). México y el cambio climático global (1.a ed.). https://biblioteca.semarnat.gob.mx/janium/Documentos/Cecadesu/Libros/202453.pdf
+
+BASES DE DATOS
+
+SEMARNAT: http://dgeiawf.semarnat.gob.mx:8080/ibi_apps/WFServlet?IBIF_ex=D3_AIRE02_25&IBIC_user=dgeia_mce&IBIC_pass=dgeia_mce&NOMBREANIO=\* CONAFOR: https://snmf.cnf.gob.mx/deforestacion/
